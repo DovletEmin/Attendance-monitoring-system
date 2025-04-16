@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Посещаемость сотрудников</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dateInput = document.getElementById("dateInput");
+            const nameInput = document.getElementById("nameSearch");
+            const tableBody = document.getElementById("recordsBody");
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const today = new Date().toISOString().split("T")[0];
+
+            function loadData(date, name = "") {
+                fetch(`/attendance/ajax/?date=${date}&search=${encodeURIComponent(name)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        tableBody.innerHTML = "";
+                        if (data.records.length === 0) {
+                            tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">Hiç ýazgy ýok</td></tr>`;
+                        } else {
+                            data.records.forEach(record => {
+                                const row = `<tr class="border-t border-gray-200 hover:bg-gray-50 transition-all">
+                                    <td class="px-4 py-2">${record.user_id}</td>
+                                    <td class="px-4 py-2">${record.user_name}</td>
+                                    <td class="px-4 py-2">${record.date}</td>
+                                    <td class="px-4 py-2">${record.time}</td>
+                                </tr>`;
+                                tableBody.insertAdjacentHTML("beforeend", row);
+                            });
+                        }
+
+                        dateInput.value = date;
+                        nextBtn.disabled = (date === today);
+                        nextBtn.classList.toggle("opacity-50", nextBtn.disabled);
+                    });
+            }
+
+            // Начальная загрузка
+            const initialDate = new Date().toISOString().split("T")[0];
+            loadData(initialDate);
+
+            // Обработка кнопок
+            prevBtn.addEventListener("click", () => {
+                const current = new Date(dateInput.value);
+                const prev = new Date(current.setDate(current.getDate() - 1));
+                const formatted = prev.toISOString().split("T")[0];
+                loadData(formatted, nameInput.value);
+            });
+
+            nextBtn.addEventListener("click", () => {
+                const current = new Date(dateInput.value);
+                const next = new Date(current.setDate(current.getDate() + 1));
+                const formatted = next.toISOString().split("T")[0];
+                if (formatted <= today) {
+                    loadData(formatted, nameInput.value);
+                }
+            });
+
+            // Изменение даты вручную
+            dateInput.addEventListener("change", () => {
+                loadData(dateInput.value, nameInput.value);
+            });
+
+            // Поиск по имени
+            nameInput.addEventListener("input", () => {
+                loadData(dateInput.value, nameInput.value);
+            });
+
+            const resetBtn = document.getElementById("resetBtn");
+
+            resetBtn.addEventListener("click", () => {
+            const today = new Date().toISOString().split("T")[0];
+            dateInput.value = today;
+            nameInput.value = "";
+            loadData(today, "");
+            });
+
+        });
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<div class="max-w-6xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Işgärleriň gatnaşygy</h1>
+
+    <!-- Фильтры -->
+    <div class="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 mb-6">
+        <button id="prevBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition">
+            ← Bir gün yza
+        </button>
+
+        <input type="date" id="dateInput"
+               class="px-4 py-2 border rounded-lg shadow-sm w-[180px] text-center cursor-pointer">
+
+        <button id="nextBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition">
+            Bir gün öňe →
+        </button>
+
+        <input type="text" id="nameSearch" placeholder="Ady boýunça gözle"
+               class="w-full sm:w-1/3 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+
+        <button id="resetBtn"
+            class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition">
+            Ýatyrmak
+        </button>       
+    </div>
+
+    <!-- Таблица -->
+    <div class="overflow-x-auto shadow-lg rounded-lg">
+        <table class="min-w-full bg-white border border-gray-300 rounded-md">
+            <thead class="bg-blue-600 text-white">
+            <tr>
+                <th class="px-4 py-3 text-left">ID</th>
+                <th class="px-4 py-3 text-left">Ady</th>
+                <th class="px-4 py-3 text-left">Gün</th>
+                <th class="px-4 py-3 text-left">Sagat</th>
+            </tr>
+            </thead>
+            <tbody id="recordsBody">
+            <!-- Записи подгружаются сюда -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
