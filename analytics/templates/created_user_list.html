@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Посещаемость сотрудников</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    {% load static %}
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dateInput = document.getElementById("dateInput");
